@@ -1,0 +1,64 @@
+name: Code Review Github Action
+author: Frank Chen (@fxchen)
+description: 'Improve your pull requests and code base with AI-assisted code reviews'
+inputs:
+  github-token:
+    description: 'The token used to authenticate with the GitHub API'
+    required: false
+    default: ${{ github.token }}
+  model: 
+    description: 'The OpenAI language model to use for code review'
+    required: false
+    default: 'gpt-3.5-turbo'
+  openai-key:
+    description: 'The OpenAI API key'
+    required: true
+  post-if-error:
+    description: 'Whether to post a comment if there was an error'
+    required: false
+    default: 'true'
+
+outputs:
+  results:
+    description: 'Code review results (experimental)'
+
+runs:
+  using: 'composite'
+  steps:
+
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Install Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install Dependencies
+      run: pip install -r ${{ github.action_path }}/requirements.txt
+      shell: bash
+
+    - name: Run OpenAI code review
+      id: openai
+      run: |
+        python code_review.py --persona developer --style concise
+      shell: bash
+      env:
+        OPENAI_API_KEY: ${{ inputs.openai-key }}
+        MODEL: ${{ inputs.model }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        COMMIT_TITLE: ${{ github.event.pull_request.title }}
+        COMMIT_BODY: ${{ github.event.pull_request.body }}
+
+    - name: Create comment
+      if: success() || (inputs.post-if-error && inputs.post-if-error != 'false')
+      uses: peter-evans/create-or-update-comment@v3
+      with:
+        issue-number: ${{ github.event.pull_request.number }}
+        body: |
+          ${{ steps.openai.outputs.reviewresult && steps.openai.outputs.reviewresult || steps.err-output.outputs.errorresult }}
+        reactions: '+1'
+
+branding:
+  icon: 'user-check'
+  color: 'green'
