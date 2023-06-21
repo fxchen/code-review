@@ -16,22 +16,19 @@ def get_file(filename):
   except FileNotFoundError:
     return f"File {filename} not found."
 
-def get_diff(filename=None):
-  """Get the diff between the current branch and the master branch or from a provided file."""
+def get_diff(filename=None, branch='main'):
+  """Get the diff between the current branch and the specified branch or from a provided file."""
   if filename:
     return get_file(filename)
   else:
     try:
-      repo = git.Repo(search_parent_directories=True)
-      current_branch = repo.active_branch.name
-      diff = repo.git.diff('origin/main..' + current_branch)
+      diff = subprocess.check_output(f'git diff origin/{branch}', shell=True).decode()
 
       if diff:
         return diff
       else:
-        return "No differences between master and current branch."
-
-    except git.GitError as e:
+        return "No differences between specified branch and current branch."
+    except subprocess.CalledProcessError as e:
       return f"An error occurred while trying to get the git diff: {str(e)}"
 
 def main():
@@ -39,10 +36,11 @@ def main():
   parser = argparse.ArgumentParser(description="Improve your pull requests and code base with AI-assisted code reviews")
   parser.add_argument('--persona', default='developer', help='The persona to use in the prompt (developer, kent_beck, marc_benioff, yoda)')
   parser.add_argument('--style', default='concise', help='The style of output to use (concise, zen)')
+  parser.add_argument('--model', default='gpt-3.5-turbo', help='The model to use for the OpenAI API call')
+  parser.add_argument('--branch', default='main', help='The branch to diff against (defaults to main)')
   parser.add_argument('--filename', default=None, help='Optional filename to use instead of git diff')
   parser.add_argument('--dir', type=str, default=None, help='Optional directory to use instead of git diff')
-  parser.add_argument('--model', default='gpt-3.5-turbo', help='The model to use for the OpenAI API call')
-
+  
   args = parser.parse_args()
 
   # Switch on directory
@@ -56,7 +54,7 @@ def main():
     else:
       print(f"The provided directory {args.dir} does not exist.")
   else:
-    diff = get_diff(args.filename)
+    diff = get_diff(args.filename, args.branch)
 
   # Set environment variables
   os.environ["MODEL"] = args.model
