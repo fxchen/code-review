@@ -82,18 +82,16 @@ def main():
 
   # Set up request to OpenAI
   openai.api_key = os.getenv("OPENAI_API_KEY")
-  response = openai.Completion.create(
-    engine="text-davinci-002",
-    prompt=prompt,
-    max_tokens=512,
-    temperature=0.75,
-    top_p=0.9,
-    n=1
+  response = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    messages=[
+          {"role": "system", "content": prompt},
+      ]
   )
 
   # Output response
   print(f"RESPONSE:\n{response}")
-  completion_text = response.choices[0].text.strip()
+  completion_text = response.choices[0].message.content.strip()
   print(f"FORMATTED RESPONSE:\n{completion_text}")
 
 if __name__ == "__main__":
