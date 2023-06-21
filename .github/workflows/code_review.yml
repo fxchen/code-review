@@ -9,8 +9,7 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-    - uses: ./
+      - uses: actions/checkout@v3
+      - uses: ./
         with:
           openai-key: ${{ secrets.OPENAI_API_KEY }}
