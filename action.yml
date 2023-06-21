@@ -10,7 +10,14 @@ inputs:
     description: 'The OpenAI language model to use for code review'
     required: false
     default: 'gpt-3.5-turbo'
-  
+  persona:
+    description: 'The persona to use in the prompt (developer, kent_beck, marc_benioff, yoda)'
+    required: false
+    default: 'developer'
+  style:
+    description: 'The style of output to use (concise, zen)'
+    required: false
+    default: 'concise'
   openai-key:
     description: 'The OpenAI API key'
     required: true
