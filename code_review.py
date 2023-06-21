@@ -53,23 +53,18 @@ def main():
         for file in files:
           file_path = os.path.join(root, file)
           diff += get_diff(file_path)
-          # Further processing on diff
     else:
       print(f"The provided directory {args.dir} does not exist.")
   else:
     diff = get_diff(args.filename)
-
-  # Set up prompt
-  prompt = f"{args.persona}.{args.style}.{REQUEST}\n{diff}"
-  print(f"PROMPT:\n{prompt}")
 
   # Set environment variables
   os.environ["MODEL"] = args.model
   os.environ["PERSONA"] = args.persona
   os.environ["STYLE"] = args.style
 
-  # Call action_code_review.py with the prompt as input
-  process = subprocess.run(["python3", "action_code_review.py"], input=prompt, text=True, capture_output=True)
+  # Call action_code_review.py with the diff as input
+  process = subprocess.run(["python3", "action_code_review.py"], input=diff, text=True, capture_output=True)
   print(process.stdout)
 
 if __name__ == "__main__":

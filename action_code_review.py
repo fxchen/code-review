@@ -25,7 +25,7 @@ style = STYLES[os.environ["STYLE"]]
 # Read in the diff
 diff = sys.stdin.read()
 
-prompt = f"{persona}.{style}.{REQUEST}\n```\n{diff}```"
+prompt = f"{persona}.{style}.{REQUEST}\n{diff}"
 
 kwargs = {'model': model}
 kwargs['temperature'] = 0.5
