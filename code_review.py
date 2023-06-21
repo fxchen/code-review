@@ -3,21 +3,9 @@
 import argparse
 import os
 import git
-import openai
+import subprocess
 
 REQUEST = "Reply on how to improve the code for style, clarity, comments, and tests (below)\n"
-
-STYLES = {
-  "zen": "Format feedback in the style of a zen koan",
-  "concise": "Format feedback concisely with numbered list"
-}
-
-PERSONAS = {
-  "developer": "You are an experienced software developer in a variety of programming languages and methodologies. You create efficient, scalable, and fault-tolerant solutions",
-  "kent_beck": "You are Kent Beck. You are known for software design patterns, test-driven development (TDD), and agile methodologies",
-  "marc_benioff": "You are Marc Benioff, internet entrepreneur and experienced software developer",
-  "yoda": "You are Yoda, legendary Jedi Master. Speak like Yoda",
-}
 
 def get_file(filename):
   """Get the contents of the specified file."""
@@ -37,12 +25,12 @@ def get_diff(filename=None):
       repo = git.Repo(search_parent_directories=True)
       current_branch = repo.active_branch.name
       diff = repo.git.diff('origin/master..' + current_branch)
-      
+
       if diff:
         return diff
       else:
         return "No differences between master and current branch."
-    
+
     except git.GitError as e:
       return f"An error occurred while trying to get the git diff: {str(e)}"
 
@@ -53,7 +41,6 @@ def main():
   parser.add_argument('--style', default='concise', help='The style of output to use (concise, zen)')
   parser.add_argument('--filename', default=None, help='Optional filename to use instead of git diff')
   parser.add_argument('--dir', type=str, default=None, help='Optional directory to use instead of git diff')
-
 
   args = parser.parse_args()
 
@@ -72,24 +59,18 @@ def main():
     diff = get_diff(args.filename)
 
   # Set up prompt
-  BACKGROUND = PERSONAS[args.persona]
-  STYLE = STYLES[args.style]
-  prompt = f"{BACKGROUND}.{STYLE}.{REQUEST}\n{diff}"
+  prompt = f"{args.persona}.{args.style}.{REQUEST}\n{diff}"
   print(f"PROMPT:\n{prompt}")
 
-  # Set up request to OpenAI
-  openai.api_key = os.getenv("OPENAI_API_KEY")
-  response = openai.ChatCompletion.create(
-    model="gpt-3.5-turbo",
-    messages=[
-          {"role": "system", "content": prompt},
-      ]
-  )
+  # Set environment variables
+  os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
+  os.environ["MODEL"] = "gpt-3.5-turbo"
+  os.environ["PERSONA"] = args.persona
+  os.environ["STYLE"] = args.style
 
-  # Output response
-  print(f"RESPONSE:\n{response}")
-  completion_text = response.choices[0].message.content.strip()
-  print(f"FORMATTED RESPONSE:\n{completion_text}")
+  # Call action_code_review.py with the prompt as input
+  process = subprocess.run(["python3", "action_code_review.py"], input=prompt, text=True, capture_output=True)
+  print(process.stdout)
 
 if __name__ == "__main__":
   main()
