@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-import subprocess
-import requests
 import os
-import json
 import git
 import openai
 
