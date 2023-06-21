@@ -24,7 +24,7 @@ def get_diff(filename=None):
     try:
       repo = git.Repo(search_parent_directories=True)
       current_branch = repo.active_branch.name
-      diff = repo.git.diff('origin/master..' + current_branch)
+      diff = repo.git.diff('origin/main..' + current_branch)
 
       if diff:
         return diff
@@ -36,11 +36,12 @@ def get_diff(filename=None):
 
 def main():
   # Get arguments
-  parser = argparse.ArgumentParser(description="Get the git diff from master of the current branch.")
+  parser = argparse.ArgumentParser(description="Improve your pull requests and code base with AI-assisted code reviews")
   parser.add_argument('--persona', default='developer', help='The persona to use in the prompt (developer, kent_beck, marc_benioff, yoda)')
   parser.add_argument('--style', default='concise', help='The style of output to use (concise, zen)')
   parser.add_argument('--filename', default=None, help='Optional filename to use instead of git diff')
   parser.add_argument('--dir', type=str, default=None, help='Optional directory to use instead of git diff')
+  parser.add_argument('--model', default='gpt-3.5-turbo', help='The model to use for the OpenAI API call')
 
   args = parser.parse_args()
 
@@ -63,8 +64,7 @@ def main():
   print(f"PROMPT:\n{prompt}")
 
   # Set environment variables
-  os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-  os.environ["MODEL"] = "gpt-3.5-turbo"
+  os.environ["MODEL"] = args.model
   os.environ["PERSONA"] = args.persona
   os.environ["STYLE"] = args.style
 
