@@ -10,6 +10,14 @@ inputs:
     description: 'The OpenAI language model to use for code review'
     required: false
     default: 'gpt-3.5-turbo'
+  persona:
+    description: 'The persona to use in the prompt (developer, kent_beck, marc_benioff, yoda)'
+    required: false
+    default: 'developer'
+  style:
+    description: 'The style of output to use (concise, zen)'
+    required: false
+    default: 'concise'
   openai-key:
     description: 'The OpenAI API key'
     required: true
@@ -41,14 +49,28 @@ runs:
     - name: Run OpenAI code review
       id: openai
       run: |
-        python code_review.py --persona developer --style concise
+        git diff ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | python ${{ github.action_path }}/action_code_review.py > review.txt
+        echo 'reviewresult<<EOF' >> $GITHUB_OUTPUT
+        echo "$(cat review.txt)" >> $GITHUB_OUTPUT
+        echo 'EOF' >> $GITHUB_OUTPUT
       shell: bash
       env:
         OPENAI_API_KEY: ${{ inputs.openai-key }}
         MODEL: ${{ inputs.model }}
+        PERSONA: ${{ inputs.persona }}
+        STYLE: ${{ inputs.style }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
         COMMIT_TITLE: ${{ github.event.pull_request.title }}
         COMMIT_BODY: ${{ github.event.pull_request.body }}
+    - name: Show output in case of failure
+      id: err-output
+      if: failure()
+      run: |
+        echo 'errorresult<<EOF' >> $GITHUB_OUTPUT
+        echo "ERROR: $(cat review.txt)" >> $GITHUB_OUTPUT
+        echo 'EOF' >> $GITHUB_OUTPUT
+        echo "Review result and error: $(cat review.txt)"
+      shell: bash
 
     - name: Create comment
       if: success() || (inputs.post-if-error && inputs.post-if-error != 'false')
