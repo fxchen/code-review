@@ -18,6 +18,7 @@ jobs:
         uses: peter-evans/find-comment@v2
         with:
           direction: last
+          issue-number: ${{ steps.pr.outputs }}
       - name: Filter comments
         run: |
           jq '.[] | .body' <<< "${{ steps.comments.outputs.comments }}" # let's filter on the action user in next commit # | select(.user.login == "username") 
