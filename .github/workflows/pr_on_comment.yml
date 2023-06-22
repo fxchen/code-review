@@ -1,0 +1,24 @@
+name: Read Pull Request Comments
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  read-comments:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Get pull request number
+        id: pr
+        run: echo "::set-output name=number::$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')"
+      - name: Get comments
+        id: comments
+        uses: peter-evans/get-comment@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ steps.pr.outputs.number }}
+      - name: Filter comments
+        run: |
+          jq '.[] | .body' <<< "${{ steps.comments.outputs.comments }}" # let's filter on the action user in next commit # | select(.user.login == "username") 
