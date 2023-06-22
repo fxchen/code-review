@@ -17,7 +17,7 @@ jobs:
         id: comments
         uses: peter-evans/find-comment@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          direction: last
       - name: Filter comments
         run: |
           jq '.[] | .body' <<< "${{ steps.comments.outputs.comments }}" # let's filter on the action user in next commit # | select(.user.login == "username") 
