@@ -1,6 +1,12 @@
 name: Code review
 
-on: [pull_request]
+on:
+  pull_request: # Filter out draft pull requests
+     types:
+     - opened
+     - reopened
+     - synchronize
+     - ready_for_review
 
 jobs:
   run_script:
