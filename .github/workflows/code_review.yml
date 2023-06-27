@@ -9,7 +9,7 @@ on:
      - ready_for_review
 
 jobs:
-  run_script:
+  generate_review:
     runs-on: ubuntu-latest
     permissions:
       contents: read
