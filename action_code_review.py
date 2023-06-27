@@ -56,7 +56,7 @@ openai.api_key = os.environ["OPENAI_API_KEY"]
 model = os.environ["MODEL"]
 persona = PERSONAS[os.environ["PERSONA"]]
 style = STYLES[os.environ["STYLE"]]
-include_files = os.environ["include-files"] == "true"
+include_files = os.environ["INCLUDE_FILES"] == "true"
 
 # Read in the diff
 diff = sys.stdin.read()
