@@ -56,7 +56,7 @@ openai.api_key = os.environ["OPENAI_API_KEY"]
 model = os.environ["MODEL"]
 persona = PERSONAS[os.environ["PERSONA"]]
 style = STYLES[os.environ["STYLE"]]
-include_files = os.environ["include-files"] == "true"
+include_files = os.environ["INCLUDE_FILES"] == "true"
 
 # Read in the diff
 diff = sys.stdin.read()
@@ -70,7 +70,7 @@ kwargs['messages']=[{"role": "system", "content": prompt}]
 
 # Optionally include files from the diff
 if include_files:
-  filenames = extract_filenames_from_diff(diff_text)
+  filenames = extract_filenames_from_diff(diff)
   formatted_str = format_file_contents(filenames)
   new_message = {"role": "user", "content": formatted_str}
   kwargs['messages'].append(new_message)
