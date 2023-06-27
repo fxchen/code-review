@@ -21,8 +21,8 @@ inputs:
   openai-key:
     description: 'The OpenAI API key'
     required: true
-  use-full-file:
-    description: 'Whether to include the full file or not'
+  include-files:
+    description: 'Whether to include full files in addition to the diff'
     required: false
     default: 'false'
   post-if-error:
