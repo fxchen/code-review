@@ -33,12 +33,16 @@ outputs:
 runs:
   using: 'composite'
   steps:
+    - name: Checkout base sha
+      uses: actions/checkout@v2
+      with:
+        ref: ${{ github.event.pull_request.base.sha }}
 
     - name: Checkout
       uses: actions/checkout@v2
       with:
         fetch-depth: 2
-        
+
     - name: Install Python
       uses: actions/setup-python@v4
       with:
@@ -64,6 +68,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         COMMIT_TITLE: ${{ github.event.pull_request.title }}
         COMMIT_BODY: ${{ github.event.pull_request.body }}
+
     - name: Show output in case of failure
       id: err-output
       if: failure()
