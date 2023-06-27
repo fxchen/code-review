@@ -2,7 +2,6 @@
 
 import argparse
 import os
-import git
 import subprocess
 
 REQUEST = "Reply on how to improve the code for style, clarity, comments, and tests (below)\n"

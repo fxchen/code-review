@@ -9,7 +9,7 @@ inputs:
   model: 
     description: 'The OpenAI language model to use for code review'
     required: false
-    default: 'gpt-3.5-turbo'
+    default: 'gpt-3.5-turbo-16k'
   persona:
     description: 'The persona to use in the prompt (developer, kent_beck, marc_benioff, yoda)'
     required: false
@@ -21,6 +21,10 @@ inputs:
   openai-key:
     description: 'The OpenAI API key'
     required: true
+  include-files:
+    description: 'Whether to include full files in addition to the diff'
+    required: false
+    default: 'false'
   post-if-error:
     description: 'Whether to post a comment if there was an error'
     required: false
@@ -66,6 +70,7 @@ runs:
         PERSONA: ${{ inputs.persona }}
         STYLE: ${{ inputs.style }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
+        USE_FULL_FILE: ${{ inputs.use-full-file }}
         COMMIT_TITLE: ${{ github.event.pull_request.title }}
         COMMIT_BODY: ${{ github.event.pull_request.body }}
 
