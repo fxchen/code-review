@@ -1,6 +1,9 @@
 from action_code_review import extract_filenames_from_diff
 
 def test_extract_filenames_from_diff():
+    """
+    Unit tests for the extract_filenames_from_diff function.
+    """
     # When diff_text contains changes for one file
     diff_text = """
     diff --git a/file1.txt b/file1.txt
@@ -35,5 +38,3 @@ def test_extract_filenames_from_diff():
     # When diff_text is empty
     diff_text = ""
     assert extract_filenames_from_diff(diff_text) == []
-
-test_extract_filenames_from_diff()
