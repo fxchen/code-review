@@ -70,7 +70,7 @@ runs:
         PERSONA: ${{ inputs.persona }}
         STYLE: ${{ inputs.style }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
-        USE_FULL_FILE: ${{ inputs.use-full-file }}
+        INCLUDE_FILES: ${{ inputs.include-files }}
         COMMIT_TITLE: ${{ github.event.pull_request.title }}
         COMMIT_BODY: ${{ github.event.pull_request.body }}
 
