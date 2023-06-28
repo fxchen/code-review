@@ -38,7 +38,7 @@ def format_file_contents(filenames):
     files_str += f"\n{filename}\n```\n{content}\n```\n"
   return files_str
 
-REQUEST = "Reply on how to improve the code for style, clarity, comments, and tests (below)\n"
+REQUEST = "Reply on how to improve the code (below). Think step-by-step. Give code examples of specific changes\n"
 
 STYLES = {
 "zen": "Format feedback in the style of a zen koan",
@@ -53,10 +53,10 @@ PERSONAS = {
 }
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
-model = os.environ["MODEL"]
-persona = PERSONAS[os.environ["PERSONA"]]
-style = STYLES[os.environ["STYLE"]]
-include_files = os.environ["INCLUDE_FILES"] == "true"
+model = os.environ.get("MODEL", "gpt-3.5-turbo-16k")
+persona = PERSONAS.get(os.environ.get("PERSONA"), PERSONAS["developer"])
+style = STYLES.get(os.environ.get("STYLE"), STYLES["concise"])
+include_files = os.environ.get("INCLUDE_FILES", "false") == "true"
 
 # Read in the diff
 diff = sys.stdin.read()
