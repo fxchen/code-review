@@ -17,3 +17,4 @@ jobs:
         with:
           openai-key: ${{ secrets.OPENAI_API_KEY }}
           include-full-files: 'true'
+          exclude-files: 'package.json,go.sum'
