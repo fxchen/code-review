@@ -4,11 +4,13 @@ import sys
 import openai
 import re
 
-def extract_filenames_from_diff(diff_text):
+def extract_filenames_from_diff(diff_text, exclude_flags):
   """
   This function extracts filenames from git diff text using regular expressions.
+  Filenames that match any of the exclude flags are ignored.
   
   :param diff_text: str, git diff text
+  :param exclude_flags: list of str, list of exclude flags
   :return: list of str, list of filenames
   """
 
@@ -20,6 +22,9 @@ def extract_filenames_from_diff(diff_text):
   # re.findall function finds all matches of the pattern in the diff_text
   # and returns them as a list.
   filenames = re.findall(pattern, diff_text)
+
+  # Exclude files that match any of the exclude flags
+  filenames = [filename for filename in filenames if not any(flag in filename for flag in exclude_flags)]
 
   return filenames
 
@@ -57,6 +62,11 @@ model = os.environ["MODEL"]
 persona = PERSONAS[os.environ["PERSONA"]]
 style = STYLES[os.environ["STYLE"]]
 include_files = os.environ["INCLUDE_FILES"] == "true"
+# Get the exclude flags from the environment variable
+exclude_flags_str = os.getenv('EXCLUDE_FLAGS', '')
+
+# Split the string into a list of flags
+exclude_flags = [flag.strip() for flag in exclude_flags_str.split(',')]
 
 # Read in the diff
 diff = sys.stdin.read()
@@ -70,7 +80,7 @@ kwargs['messages']=[{"role": "system", "content": prompt}]
 
 # Optionally include files from the diff
 if include_files:
-  filenames = extract_filenames_from_diff(diff)
+  filenames = extract_filenames_from_diff(diff, exclude_flags)
   formatted_str = format_file_contents(filenames)
   new_message = {"role": "user", "content": formatted_str}
   kwargs['messages'].append(new_message)
