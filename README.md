@@ -74,11 +74,11 @@ on:
 ```
 
 ## Exclude dependabot
-Example `.github/workflows/code-review.yml`
+You probably don't want dependabot PRs reviewed. Example `.github/workflows/code-review.yml`
 ```
 jobs:
   code-review:
-    if: ${{ github.actor == 'dependabot[bot]' }}
+    if: ${{ github.actor != 'dependabot[bot]' }}
     steps:
       - uses: fxchen/code-review@latest
 ```
