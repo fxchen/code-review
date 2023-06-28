@@ -63,7 +63,16 @@ runs:
     - name: Run OpenAI code review
       id: openai
       run: |
-        git diff ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | python ${{ github.action_path }}/action_code_review.py > review.txt
+        # Exclude files
+        exclude_flags=${{ inputs.exclude-flags }}
+        IFS=', ' read -r -a exclude_array <<< "$exclude_flags"
+        exclude_str=""
+        for index in "${!exclude_array[@]}"
+        do
+            exclude_str+=":'!${exclude_array[index]}'"
+        done
+        # Run the git diff
+        git diff ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- . $exclude_str | python ${{ github.action_path }}/action_code_review.py > review.txt
         echo 'reviewresult<<EOF' >> $GITHUB_OUTPUT
         echo "$(cat review.txt)" >> $GITHUB_OUTPUT
         echo 'EOF' >> $GITHUB_OUTPUT
