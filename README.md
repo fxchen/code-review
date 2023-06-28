@@ -10,9 +10,7 @@ Example `.github/workflows/code-review.yml`
 
 ```
 name: Code review
-
 on: [pull_request]
-
 jobs:
   code-review:
     runs-on: ubuntu-latest
@@ -64,16 +62,25 @@ This is a comma-separated list of flags to exclude from the action. It's not req
 # Options
 
 ## Only execute on draft PRs
-
-(e.g. `.github/workflows/code-review.yml`)
+This replaces `on: [pull_request]`. Example `.github/workflows/code-review.yml`
 ```
-# […replace the on stanza from your workflow…]
+on:
   pull_request: # Filter out draft pull requests
      types:
      - opened
      - reopened
      - synchronize
      - ready_for_review
+```
+
+## Exclude dependabot
+Example `.github/workflows/code-review.yml`
+```
+jobs:
+  code-review:
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    steps:
+      - uses: fxchen/code-review@latest
 ```
 
 ## Set up as CLI tool
