@@ -49,14 +49,14 @@ The persona to use in the prompt. Options include 'developer', 'kent_beck', 'mar
 ### `style`
 The style of output to use. Options include 'concise', 'zen', etc. This is not required, and defaults to 'concise'.
 
-### `include-files`
-This flag determines whether to include full files in addition to the diff. It's not required and defaults to 'false'.
+### `include-full-files`
+This flag determines whether to include full files in addition to the diff. This is helpful to create better reviews by including more context. It's not required and defaults to 'false'.
 
 ### `post-if-error`
 This flag determines whether to post a comment if there was an error during execution. It's not required and defaults to 'false'.
 
-### `exclude-flags`
-This is a comma-separated list of flags to exclude from the action. It's not required and defaults to an empty string.
+### `exclude-files`
+This is a comma-separated list of files to exclude from the action. It's not required and defaults to an empty string.
 ```    exclude-flags: 'file_to_exclude.py,another_file_to_exclude.py'```
 
 # Options

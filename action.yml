@@ -21,7 +21,7 @@ inputs:
   openai-key:
     description: 'The OpenAI API key'
     required: true
-  include-files:
+  include-full-files:
     description: 'Whether to include full files in addition to the diff'
     required: false
     default: 'false'
@@ -29,7 +29,7 @@ inputs:
     description: 'Whether to post a comment if there was an error'
     required: false
     default: 'false'
-  exclude-flags:
+  exclude-files:
     description: 'A list of flags to exclude from the action (comma separated)'
     required: false
     default: ''
@@ -64,7 +64,7 @@ runs:
       id: openai
       run: |
         # Exclude files
-        exclude_flags=${{ inputs.exclude-flags }}
+        exclude_flags=${{ inputs.exclude-files }}
         IFS=', ' read -r -a exclude_array <<< "$exclude_flags"
         exclude_str=""
         for index in "${!exclude_array[@]}"
@@ -83,10 +83,9 @@ runs:
         PERSONA: ${{ inputs.persona }}
         STYLE: ${{ inputs.style }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
-        INCLUDE_FILES: ${{ inputs.include-files }}
+        INCLUDE_FILES: ${{ inputs.include-full-files }}
         COMMIT_TITLE: ${{ github.event.pull_request.title }}
         COMMIT_BODY: ${{ github.event.pull_request.body }}
-        EXCLUDE_FLAGS: ${{ inputs.exclude-flags }}
 
     - name: Show output in case of failure
       id: err-output
