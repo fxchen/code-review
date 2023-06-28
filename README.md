@@ -18,7 +18,7 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: fxchen/code-review@0.2.1-alpha
+      - uses: fxchen/code-review@latest
         with:
           model: 'gpt-3.5-turbo-16k'
           openai-key: ${{ secrets.OPENAI_API_KEY }}
