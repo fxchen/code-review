@@ -49,6 +49,9 @@ def main():
   
   args = parser.parse_args()
 
+  # Parse exclude_files argument as a list
+  exclude_files = [file.strip() for file in args.exclude_files.split(',')] if args.exclude_files else None
+
   # Switch on directory
   if args.dir:
     diff = ""
