@@ -53,9 +53,9 @@ PERSONAS = {
 }
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
-model = os.environ["MODEL"]
-persona = PERSONAS[os.environ["PERSONA"]]
-style = STYLES[os.environ["STYLE"]]
+model = os.environ.get("MODEL", "gpt-3.5-turbo-16k")
+persona = PERSONAS.get(os.environ.get("PERSONA"), PERSONAS["developer"])
+style = STYLES.get(os.environ.get("STYLE"), STYLES["concise"])
 include_files = os.environ.get("INCLUDE_FILES", "false") == "true"
 
 # Read in the diff
