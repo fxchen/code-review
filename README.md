@@ -57,7 +57,7 @@ This flag determines whether to post a comment if there was an error during exec
 
 ### `exclude-files`
 This is a comma-separated list of files to exclude from the action. It's not required and defaults to an empty string.
-```    exclude-flags: 'file_to_exclude.py,another_file_to_exclude.py'```
+```exclude-files: 'file_to_exclude.py,another_file_to_exclude.py'```
 
 # Options
 
