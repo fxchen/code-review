@@ -39,6 +39,8 @@ def main():
   parser.add_argument('--branch', default='main', help='The branch to diff against (defaults to main)')
   parser.add_argument('--filename', default=None, help='Optional filename to use instead of git diff')
   parser.add_argument('--dir', type=str, default=None, help='Optional directory to use instead of git diff')
+  parser.add_argument('--include-full-files', default='false', type=str, help='Whether to include full files in addition to the diff')
+  # TODO parser.add_argument('--exclude-files', default='', type=str, help='A list of flags to exclude from the action (comma separated). E.g. "package.json,pyproject.toml"')
   
   args = parser.parse_args()
 
@@ -59,6 +61,7 @@ def main():
   os.environ["MODEL"] = args.model
   os.environ["PERSONA"] = args.persona
   os.environ["STYLE"] = args.style
+  os.environ["INCLUDE_FILES"] = args.include_full_files
 
   # Call action_code_review.py with the diff as input
   process = subprocess.run(["python3", "action_code_review.py"], input=diff, text=True, capture_output=True)
