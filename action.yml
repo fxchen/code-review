@@ -28,7 +28,11 @@ inputs:
   post-if-error:
     description: 'Whether to post a comment if there was an error'
     required: false
-    default: 'true'
+    default: 'false'
+  exclude-flags:
+    description: 'A list of flags to exclude from the action (comma separated)'
+    required: false
+    default: ''
 
 outputs:
   results:
@@ -73,6 +77,7 @@ runs:
         INCLUDE_FILES: ${{ inputs.include-files }}
         COMMIT_TITLE: ${{ github.event.pull_request.title }}
         COMMIT_BODY: ${{ github.event.pull_request.body }}
+        EXCLUDE_FLAGS: ${{ inputs.exclude-flags }}
 
     - name: Show output in case of failure
       id: err-output
