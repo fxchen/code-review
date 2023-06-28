@@ -30,7 +30,7 @@ inputs:
     required: false
     default: 'false'
   exclude-files:
-    description: 'A list of flags to exclude from the action (comma separated)'
+    description: 'A list of flags to exclude from the action (comma separated). E.g. "package.json,pyproject.toml"'
     required: false
     default: ''
 
