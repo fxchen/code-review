@@ -16,4 +16,4 @@ jobs:
       - uses: ./
         with:
           openai-key: ${{ secrets.OPENAI_API_KEY }}
-          include-files: 'true'
+          include-full-files: 'true'
