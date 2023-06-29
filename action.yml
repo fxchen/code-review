@@ -58,10 +58,10 @@ runs:
       id: first_commit
       run: |
         # Find the common ancestor of the base branch and the head branch
-        common_ancestor=$(git merge-base ${{ github.event.pull_request.base.ref }} ${{ github.event.pull_request.head.ref }})
+        common_ancestor=$(git merge-base ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
        
         # Find the first commit on the head branch after the common ancestor
-        first_commit=$(git rev-list --reverse --ancestry-path $common_ancestor..${{ github.event.pull_request.head.ref }} | head -n 1)
+        first_commit=$(git rev-list --reverse --ancestry-path $common_ancestor..${{ github.event.pull_request.head.sha }} | head -n 1)
 
         # Set the first commit as an output variable to use in later steps
         echo "::set-output name=sha::$first_commit"
