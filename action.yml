@@ -41,15 +41,10 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Checkout base sha
-      uses: actions/checkout@v2
-      with:
-        ref: ${{ github.event.pull_request.base.sha }}
-
     - name: Checkout
       uses: actions/checkout@v2
       with:
-        fetch-depth: 2
+        fetch-depth: 0
 
     - name: Install Python
       uses: actions/setup-python@v4
@@ -59,11 +54,22 @@ runs:
     - name: Install Dependencies
       run: pip install -r ${{ github.action_path }}/requirements.txt
       shell: bash
-
-    - name: Run OpenAI code review
-      id: openai
+    - name: Get first commit on PR branch after branch point
+      id: first_commit
       run: |
-        # Exclude files
+        # Find the common ancestor of the base branch and the head branch
+        common_ancestor=$(git merge-base ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
+       
+        # Find the first commit on the head branch after the common ancestor
+        first_commit=$(git rev-list --reverse --ancestry-path $common_ancestor..${{ github.event.pull_request.head.sha }} | head -n 1)
+
+        # Set the first commit as an output variable to use in later steps
+        echo "sha=$first_commit" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: Prepare excluded files
+      id: prepare_exclude
+      run: |
         exclude_flags=${{ inputs.exclude-files }}
         IFS=', ' read -r -a exclude_array <<< "$exclude_flags"
         exclude_str=""
@@ -71,8 +77,20 @@ runs:
         do
             exclude_str+="':(exclude)${exclude_array[index]}' "
         done
-        # Run the git diff
-        git diff ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- . $exclude_str | python ${{ github.action_path }}/action_code_review.py > review.txt
+        echo "exclude_files=$exclude_str" >> $GITHUB_OUTPUT
+      shell: bash
+    
+    - name: Run git diff
+      id: git_diff
+      run: |
+        source $GITHUB_OUTPUT
+        git diff ${{ steps.first_commit.outputs.sha }} ${{ github.event.pull_request.head.sha }} -- . ${{ steps.prepare_exclude.outputs.exclude_files }} > diff.txt
+      shell: bash
+    
+    - name: Run OpenAI code review
+      id: openai
+      run: |
+        cat diff.txt | python ${{ github.action_path }}/action_code_review.py > review.txt
         echo 'reviewresult<<EOF' >> $GITHUB_OUTPUT
         echo "$(cat review.txt)" >> $GITHUB_OUTPUT
         echo 'EOF' >> $GITHUB_OUTPUT
