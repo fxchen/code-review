@@ -65,6 +65,7 @@ runs:
 
         # Set the first commit as an output variable to use in later steps
         echo "::set-output name=sha::$first_commit"
+      shell: bash
 
     - name: Run OpenAI code review
       id: openai
