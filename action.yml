@@ -64,7 +64,7 @@ runs:
         first_commit=$(git rev-list --reverse --ancestry-path $common_ancestor..${{ github.event.pull_request.head.sha }} | head -n 1)
 
         # Set the first commit as an output variable to use in later steps
-        echo "::set-output name=sha::$first_commit"
+        echo "sha=$first_commit" >> $GITHUB_OUTPUT
       shell: bash
 
     - name: Prepare excluded files
@@ -77,12 +77,13 @@ runs:
         do
             exclude_str+="':(exclude)${exclude_array[index]}' "
         done
-        echo "::set-output name=exclude_files::$exclude_str"
+        echo "exclude_files=$exclude_str" >> $GITHUB_OUTPUT
       shell: bash
     
     - name: Run git diff
       id: git_diff
       run: |
+        source $GITHUB_OUTPUT
         git diff ${{ steps.first_commit.outputs.sha }} ${{ github.event.pull_request.head.sha }} -- . ${{ steps.prepare_exclude.outputs.exclude_files }} > diff.txt
       shell: bash
     
