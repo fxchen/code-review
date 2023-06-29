@@ -104,7 +104,6 @@ runs:
         issue-number: ${{ github.event.pull_request.number }}
         body: |
           ${{ steps.openai.outputs.reviewresult && steps.openai.outputs.reviewresult || steps.err-output.outputs.errorresult }}
-        reactions: '+1'
 
 branding:
   icon: 'user-check'
