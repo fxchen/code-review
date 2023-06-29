@@ -78,11 +78,13 @@ runs:
             exclude_str+="':(exclude)${exclude_array[index]}' "
         done
         echo "::set-output name=exclude_files::$exclude_str"
+      shell: bash
     
     - name: Run git diff
       id: git_diff
       run: |
         git diff ${{ steps.first_commit.outputs.sha }} ${{ github.event.pull_request.head.sha }} -- . ${{ steps.prepare_exclude.outputs.exclude_files }} > diff.txt
+      shell: bash
     
     - name: Run OpenAI code review
       id: openai
