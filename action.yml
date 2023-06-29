@@ -67,10 +67,9 @@ runs:
         echo "::set-output name=sha::$first_commit"
       shell: bash
 
-    - name: Run OpenAI code review
-      id: openai
+    - name: Prepare excluded files
+      id: prepare_exclude
       run: |
-        # Exclude files from git diff
         exclude_flags=${{ inputs.exclude-files }}
         IFS=', ' read -r -a exclude_array <<< "$exclude_flags"
         exclude_str=""
@@ -78,9 +77,17 @@ runs:
         do
             exclude_str+="':(exclude)${exclude_array[index]}' "
         done
-        # Run the git diff using the first commit on the PR branch after the branch point
-        git diff ${{ steps.first_commit.outputs.sha }} ${{ github.event.pull_request.head.sha }} -- . $exclude_str | python ${{ github.action_path }}/action_code_review.py > review.txt
-        
+        echo "::set-output name=exclude_files::$exclude_str"
+    
+    - name: Run git diff
+      id: git_diff
+      run: |
+        git diff ${{ steps.first_commit.outputs.sha }} ${{ github.event.pull_request.head.sha }} -- . ${{ steps.prepare_exclude.outputs.exclude_files }} > diff.txt
+    
+    - name: Run OpenAI code review
+      id: openai
+      run: |
+        cat diff.txt | python ${{ github.action_path }}/action_code_review.py > review.txt
         echo 'reviewresult<<EOF' >> $GITHUB_OUTPUT
         echo "$(cat review.txt)" >> $GITHUB_OUTPUT
         echo 'EOF' >> $GITHUB_OUTPUT
