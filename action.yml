@@ -41,15 +41,10 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Checkout base sha
-      uses: actions/checkout@v2
-      with:
-        ref: ${{ github.event.pull_request.base.sha }}
-
     - name: Checkout
       uses: actions/checkout@v2
       with:
-        fetch-depth: 2
+        fetch-depth: 0
 
     - name: Install Python
       uses: actions/setup-python@v4
@@ -59,11 +54,22 @@ runs:
     - name: Install Dependencies
       run: pip install -r ${{ github.action_path }}/requirements.txt
       shell: bash
+    - name: Get first commit on PR branch after branch point
+      id: first_commit
+      run: |
+        # Find the common ancestor of the base branch and the head branch
+        common_ancestor=$(git merge-base ${{ github.event.pull_request.base.ref }} ${{ github.event.pull_request.head.ref }})
+       
+        # Find the first commit on the head branch after the common ancestor
+        first_commit=$(git rev-list --reverse --ancestry-path $common_ancestor..${{ github.event.pull_request.head.ref }} | head -n 1)
+
+        # Set the first commit as an output variable to use in later steps
+        echo "::set-output name=sha::$first_commit"
 
     - name: Run OpenAI code review
       id: openai
       run: |
-        # Exclude files
+        # Exclude files from git diff
         exclude_flags=${{ inputs.exclude-files }}
         IFS=', ' read -r -a exclude_array <<< "$exclude_flags"
         exclude_str=""
@@ -71,8 +77,9 @@ runs:
         do
             exclude_str+="':(exclude)${exclude_array[index]}' "
         done
-        # Run the git diff
-        git diff ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- . $exclude_str | python ${{ github.action_path }}/action_code_review.py > review.txt
+        # Run the git diff using the first commit on the PR branch after the branch point
+        git diff ${{ steps.first_commit.outputs.sha }} ${{ github.event.pull_request.head.sha }} -- . $exclude_str | python ${{ github.action_path }}/action_code_review.py > review.txt
+        
         echo 'reviewresult<<EOF' >> $GITHUB_OUTPUT
         echo "$(cat review.txt)" >> $GITHUB_OUTPUT
         echo 'EOF' >> $GITHUB_OUTPUT
