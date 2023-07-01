@@ -11,6 +11,9 @@ def extract_filenames_from_diff_text(diff_text):
     :param diff_text: str, git diff text
     :return: list of str, list of filenames
     """
+    # Pattern for lines that start with '+++ b/', which are lines that contain filenames
+    # of the "new version" files in the diff. The parentheses (.) create a group that
+    # captures the filename that follows '+++ b/'.
     pattern = r'\+\+\+ b/(.*)'
     filenames = re.findall(pattern, diff_text)
     return filenames
