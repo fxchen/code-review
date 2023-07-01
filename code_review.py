@@ -26,9 +26,9 @@ def get_diff(filename=None, branch='main', exclude_files=None):
       # Exclude files if any are provided
       if exclude_files:
         exclude_str = ' '.join(f':(exclude){file}' for file in exclude_files)
-        diff = subprocess.check_output(f'git diff {common_ancestor} -- . ":{exclude_str}"', shell=True).decode()
+        diff = subprocess.check_output(f'git diff {common_ancestor} HEAD -- . ":{exclude_str}"', shell=True).decode()
       else:
-        diff = subprocess.check_output(f'git diff {common_ancestor}', shell=True).decode()
+        diff = subprocess.check_output(f'git diff {common_ancestor} HEAD', shell=True).decode()
 
       if diff:
         return diff
