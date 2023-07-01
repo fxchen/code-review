@@ -21,12 +21,14 @@ def get_diff(filename=None, branch='main', exclude_files=None):
     return get_file(filename)
   else:
     try:
+      # Find the common ancestor of the base branch and the head branch
+      common_ancestor = subprocess.check_output(f'git merge-base origin/{branch} HEAD', shell=True).decode().strip()
       # Exclude files if any are provided
       if exclude_files:
         exclude_str = ' '.join(f':(exclude){file}' for file in exclude_files)
-        diff = subprocess.check_output(f'git diff origin/{branch} -- . ":{exclude_str}"', shell=True).decode()
+        diff = subprocess.check_output(f'git diff {common_ancestor} -- . ":{exclude_str}"', shell=True).decode()
       else:
-        diff = subprocess.check_output(f'git diff origin/{branch}', shell=True).decode()
+        diff = subprocess.check_output(f'git diff {common_ancestor}', shell=True).decode()
 
       if diff:
         return diff
