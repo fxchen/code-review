@@ -79,7 +79,7 @@ runs:
       id: git_diff
       run: |
         source $GITHUB_OUTPUT
-        git diff ${{ steps.first_commit.outputs.sha }} ${{ github.event.pull_request.head.sha }} -- . ${{ steps.prepare_exclude.outputs.exclude_files }} > diff.txt
+        git diff --merge-base ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}) -- . ${{ steps.prepare_exclude.outputs.exclude_files }} > diff.txt
       shell: bash
     
     - name: Run OpenAI code review
