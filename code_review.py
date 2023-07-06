@@ -13,7 +13,11 @@ def get_file(filename):
       file_str = file.read()
       return f"\n{filename}\n```\n{file_str}\n```"
   except FileNotFoundError:
-    return f"File {filename} not found."
+    print(f"WARNING: File {filename} not found")
+    return ""
+  except UnicodeDecodeError:
+    print(f"WARNING: File {filename} could not be read due to encoding issues. Skipping this file.")
+    return ""
 
 def get_diff(filename=None, branch='main', exclude_files=None):
   """Get the diff between the current branch and the specified branch or from a provided file."""
