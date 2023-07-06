@@ -4,8 +4,6 @@ import argparse
 import os
 import subprocess
 
-REQUEST = "Reply on how to improve the code for style, clarity, comments, and tests (below)\n"
-
 def get_file(filename):
   """Get the contents of the specified file."""
   try:
@@ -22,11 +20,11 @@ def get_diff(filename=None, branch='main', exclude_files=None):
   else:
     try:
       # Exclude files if any are provided
-      if exclude_files:
-        exclude_str = ' '.join(f':(exclude){file}' for file in exclude_files)
-        diff = subprocess.check_output(f'git diff origin/{branch} -- . ":{exclude_str}"', shell=True).decode()
-      else:
-        diff = subprocess.check_output(f'git diff origin/{branch}', shell=True).decode()
+      exclude_str = ' '.join(f"':(exclude){file}' " for file in exclude_files) if exclude_files else ' '
+
+      # Find the common ancestor of the base branch and the head branch
+      diff_str = f"git diff --merge-base origin/{branch} HEAD -- . {exclude_str}"
+      diff = subprocess.check_output(diff_str, shell=True).decode()
 
       if diff:
         return diff
