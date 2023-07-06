@@ -83,7 +83,7 @@ try:
       review_text = response.choices[0].message.content.strip()
   else:
     review_text = f"No response from OpenAI\n{response.text}"
-except openai.OpenAIError as e:
+except Exception as e:
   review_text = f"OpenAI failed to generate a review: {e}"
 
 print(f"{review_text}")
