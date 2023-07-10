@@ -4,6 +4,11 @@ import argparse
 import os
 import subprocess
 
+DEFAULT_PERSONA = 'developer'
+DEFAULT_STYLE = 'concise'
+DEFAULT_MODEL = 'gpt-3.5-turbo-16k'
+DEFAULT_BRANCH = 'main'
+
 def get_file(filename):
   """Get the contents of the specified file."""
   try:
@@ -48,10 +53,10 @@ def get_diff(filename=None, branch='main', exclude_files=None):
 def main():
   # Get arguments
   parser = argparse.ArgumentParser(description="Improve your pull requests and code base with AI-assisted code reviews")
-  parser.add_argument('--persona', default='developer', help='The persona to use in the prompt (developer, kent_beck, marc_benioff, yoda)')
-  parser.add_argument('--style', default='concise', help='The style of output to use (concise, zen)')
-  parser.add_argument('--model', default='gpt-3.5-turbo-16k', help='The model to use for the OpenAI API call')
-  parser.add_argument('--branch', default='main', help='The branch to diff against (defaults to main)')
+  parser.add_argument('--persona', default=DEFAULT_PERSONA, help='The persona to use in the prompt (developer, kent_beck, marc_benioff, yoda)')
+  parser.add_argument('--style', default=DEFAULT_STYLE, help='The style of output to use (concise, zen)')
+  parser.add_argument('--model', default=DEFAULT_MODEL, help='The model to use for the OpenAI API call')
+  parser.add_argument('--branch', default=DEFAULT_BRANCH, help='The branch to diff against (defaults to main)')
   parser.add_argument('--filename', default=None, help='Optional filename to use instead of git diff')
   parser.add_argument('--dir', type=str, default=None, help='Optional directory to use instead of git diff')
   parser.add_argument('--include-full-files', default='false', type=str, help='Whether to include full files in addition to the diff')
