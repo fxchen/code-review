@@ -6,9 +6,20 @@ import string
 import re
 from typing import List
 
+OPENAI_API_KEY = "OPENAI_API_KEY"
+VALID_CHARS = "-_.() %s%s" % (string.ascii_letters, string.digits)
+GIT_DIFF_REGEX_PATTERN = r'\+\+\+ b/(.*)'
+DEFAULT_MODEL = "gpt-3.5-turbo-16k"
+DEFAULT_STYLE = "concise"
+DEFAULT_PERSONA = "kent_beck"
+OPENAI_TEMPERATURE = 0.1
+OPENAI_MAX_TOKENS = 2048
+OPENAI_ERROR_NO_RESPONSE = "No response from OpenAI. Error:\n"
+OPENAI_ERROR_FAILED = "OpenAI failed to generate a review. Error:\n"
+
 # Make sure the necessary environment variables are set
-if "OPENAI_API_KEY" not in os.environ:
-  print("The OPENAI_API_KEY environment variable is not set.")
+if OPENAI_API_KEY not in os.environ:
+  print(f"The {OPENAI_API_KEY} environment variable is not set.")
   sys.exit(1)
 
 def validate_filename(filename: str) -> bool:
@@ -26,9 +37,8 @@ def validate_filename(filename: str) -> bool:
         return False
 
     # Check for unusual characters
-    valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
     for char in filename:
-        if char not in valid_chars:
+        if char not in VALID_CHARS:
             return False
 
     return True
@@ -43,8 +53,7 @@ def extract_filenames_from_diff_text(diff_text: str) -> List[str]:
   Returns:
     List of filenames
   """
-  pattern = r'\+\+\+ b/(.*)'
-  filenames = re.findall(pattern, diff_text)
+  filenames = re.findall(GIT_DIFF_REGEX_PATTERN, diff_text)
   sanitized_filenames = [fn for fn in filenames if validate_filename(fn)]
   return sanitized_filenames
 
@@ -83,10 +92,10 @@ PERSONAS = {
   "yoda": "You are Yoda, legendary Jedi Master. Speak like Yoda",
 }
 
-openai.api_key = os.environ["OPENAI_API_KEY"]
-model = os.environ.get("MODEL", "gpt-3.5-turbo-16k")
-persona = PERSONAS.get(os.environ.get("PERSONA"), PERSONAS["kent_beck"])
-style = STYLES.get(os.environ.get("STYLE"), STYLES["concise"])
+openai.api_key = os.environ[OPENAI_API_KEY]
+model = os.environ.get("MODEL", DEFAULT_MODEL)
+persona = PERSONAS.get(os.environ.get("PERSONA"), PERSONAS[DEFAULT_PERSONA])
+style = STYLES.get(os.environ.get("STYLE"), STYLES[DEFAULT_STYLE])
 include_files = os.environ.get("INCLUDE_FILES", "false") == "true"
 
 # Read in the diff
@@ -95,8 +104,8 @@ diff = sys.stdin.read()
 prompt = f"{persona}.{style}.{REQUEST}\n{diff}"
 
 kwargs = {'model': model}
-kwargs['temperature'] = 0.1
-kwargs['max_tokens'] = 2048
+kwargs['temperature'] = OPENAI_TEMPERATURE
+kwargs['max_tokens'] = OPENAI_MAX_TOKENS
 kwargs['messages']=[{"role": "system", "content": prompt}]
 
 # Optionally include files from the diff
@@ -114,10 +123,10 @@ try:
     else:
       review_text = response.choices[0].message.content.strip()
   else:
-    review_text = f"No response from OpenAI\n{response.text}"
+    review_text = OPENAI_ERROR_NO_RESPONSE + response.text
     sys.exit(1)
 except Exception as e:
-  review_text = f"OpenAI failed to generate a review: {e}"
+  review_text = OPENAI_ERROR_FAILED + str(e)
   sys.exit(1)
 
 print(f"{review_text}")
