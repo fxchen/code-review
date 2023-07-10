@@ -4,7 +4,7 @@ import argparse
 import os
 import subprocess
 
-DEFAULT_PERSONA = 'developer'
+DEFAULT_PERSONA = 'kent_beck'
 DEFAULT_STYLE = 'concise'
 DEFAULT_MODEL = 'gpt-3.5-turbo-16k'
 DEFAULT_BRANCH = 'main'
