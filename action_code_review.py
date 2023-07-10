@@ -2,8 +2,36 @@
 import os
 import sys
 import openai
+import string
 import re
 from typing import List
+
+# Make sure the necessary environment variables are set
+if "OPENAI_API_KEY" not in os.environ:
+  print("The OPENAI_API_KEY environment variable is not set.")
+  sys.exit(1)
+
+def validate_filename(filename: str) -> bool:
+    """
+    Validates a filename by checking for directory traversal and unusual characters.
+
+    Args:
+      filename: str, filename to be validated
+
+    Returns:
+      bool: True if the filename is valid, False otherwise
+    """
+    # Check for directory traversal
+    if ".." in filename or "/" in filename:
+        return False
+
+    # Check for unusual characters
+    valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
+    for char in filename:
+        if char not in valid_chars:
+            return False
+
+    return True
 
 def extract_filenames_from_diff_text(diff_text: str) -> List[str]:
   """
@@ -17,7 +45,8 @@ def extract_filenames_from_diff_text(diff_text: str) -> List[str]:
   """
   pattern = r'\+\+\+ b/(.*)'
   filenames = re.findall(pattern, diff_text)
-  return filenames
+  sanitized_filenames = [fn for fn in filenames if validate_filename(fn)]
+  return sanitized_filenames
 
 def format_file_contents_as_markdown(filenames: List[str]) -> str:
   """
@@ -32,9 +61,12 @@ def format_file_contents_as_markdown(filenames: List[str]) -> str:
   """
   formatted_files = ""
   for filename in filenames:
-    with open(filename, 'r') as file:
-      file_content = file.read()
-    formatted_files += f"\n{filename}\n```\n{file_content}\n```\n"
+    try:
+      with open(filename, 'r') as file:
+        file_content = file.read()
+      formatted_files += f"\n{filename}\n```\n{file_content}\n```\n"
+    except Exception as e:
+      print(f"Could not read file {filename}: {e}")
   return formatted_files
 
 REQUEST = "Reply on how to improve the code (below). Think step-by-step. Give code examples of specific changes\n"
@@ -63,7 +95,7 @@ diff = sys.stdin.read()
 prompt = f"{persona}.{style}.{REQUEST}\n{diff}"
 
 kwargs = {'model': model}
-kwargs['temperature'] = 0.5
+kwargs['temperature'] = 0.1
 kwargs['max_tokens'] = 2048
 kwargs['messages']=[{"role": "system", "content": prompt}]
 
@@ -83,7 +115,9 @@ try:
       review_text = response.choices[0].message.content.strip()
   else:
     review_text = f"No response from OpenAI\n{response.text}"
+    sys.exit(1)
 except Exception as e:
   review_text = f"OpenAI failed to generate a review: {e}"
+  sys.exit(1)
 
 print(f"{review_text}")
