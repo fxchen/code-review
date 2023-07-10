@@ -17,25 +17,33 @@ def get_file(filename):
     print(f"WARNING: File {filename} could not be read due to encoding issues. Skipping this file.")
     return ""
 
+def construct_git_diff_command(branch, exclude_files):
+  """Construct the git diff command."""
+  exclude_str = ' '.join(f"':!{file}' " for file in exclude_files) if exclude_files else ' '
+  return f"git diff --merge-base origin/{branch} HEAD -- . {exclude_str}"
+
+def execute_command(command):
+  """Execute a shell command and handle potential errors."""
+  try:
+    return subprocess.check_output(command, shell=True).decode()
+  except subprocess.CalledProcessError as e:
+    return f"An error occurred while trying to execute the command: {str(e)}"
+
+def get_diff_from_git(branch, exclude_files):
+  """Get the diff between the current branch and the specified branch."""
+  diff_command = construct_git_diff_command(branch, exclude_files)
+  return execute_command(diff_command)
+
+def get_diff_from_file(filename):
+  """Get the diff from a provided file."""
+  return get_file(filename)
+
 def get_diff(filename=None, branch='main', exclude_files=None):
-  """Get the diff between the current branch and the specified branch or from a provided file."""
+  """Get the diff either from git or a file."""
   if filename:
-    return get_file(filename)
+    return get_diff_from_file(filename)
   else:
-    try:
-      # Exclude files if any are provided
-      exclude_str = ' '.join(f"':!{file}' " for file in exclude_files) if exclude_files else ' '
-
-      # Find the common ancestor of the base branch and the head branch
-      diff_str = f"git diff --merge-base origin/{branch} HEAD -- . {exclude_str}"
-      diff = subprocess.check_output(diff_str, shell=True).decode()
-
-      if diff:
-        return diff
-      else:
-        return "No differences between specified branch and current branch."
-    except subprocess.CalledProcessError as e:
-      return f"An error occurred while trying to get the git diff: {str(e)}"
+    return get_diff_from_git(branch, exclude_files)
 
 def main():
   # Get arguments
@@ -47,8 +55,8 @@ def main():
   parser.add_argument('--filename', default=None, help='Optional filename to use instead of git diff')
   parser.add_argument('--dir', type=str, default=None, help='Optional directory to use instead of git diff')
   parser.add_argument('--include-full-files', default='false', type=str, help='Whether to include full files in addition to the diff')
-  parser.add_argument('--exclude-files', default='', type=str, help='A list of flags to exclude from the action (comma separated). E.g. "package.json,pyproject.toml"')
-  
+  parser.add_argument('--exclude-files', default='', type=str, help='A list of files to exclude from the action (comma separated). E.g. "package.json,pyproject.toml"')
+
   args = parser.parse_args()
 
   # Parse exclude_files argument as a list
