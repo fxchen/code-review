@@ -13,7 +13,7 @@ inputs:
   persona:
     description: 'The persona to use in the prompt (developer, kent_beck, marc_benioff, yoda)'
     required: false
-    default: 'developer'
+    default: 'kent_beck'
   style:
     description: 'The style of output to use (concise, zen)'
     required: false
