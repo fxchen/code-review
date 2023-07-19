@@ -81,12 +81,13 @@ runs:
         source $GITHUB_OUTPUT
         git diff --merge-base ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- . ${{ steps.prepare_exclude.outputs.exclude_files }} > diff.txt
       shell: bash
-    - name: Print git diff
+    - name: Get git diff
       id: print_diff
       run: |
-        echo 'diff<<EOF' >> $GITHUB_OUTPUT
-        cat diff.txt >> $GITHUB_OUTPUT
-        echo 'EOF' >> $GITHUB_OUTPUT
+        echo "::set-output name=diff::$(cat diff.txt)"
+      shell: bash
+    - name: Print diff 
+      run: echo "${{ steps.print_diff.outputs.diff }}"
       shell: bash
     - name: Run OpenAI code review
       id: openai
@@ -122,11 +123,7 @@ runs:
       with:
         issue-number: ${{ github.event.pull_request.number }}
         body: |
-          Diff:
-          ```
-          ${{ steps.print_diff.outputs.diff }}
-          ```
-          Review:
+          # Review:
           ${{ steps.openai.outputs.reviewresult && steps.openai.outputs.reviewresult || steps.err-output.outputs.errorresult }}
 
 branding:
