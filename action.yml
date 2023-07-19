@@ -81,7 +81,13 @@ runs:
         source $GITHUB_OUTPUT
         git diff --merge-base ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- . ${{ steps.prepare_exclude.outputs.exclude_files }} > diff.txt
       shell: bash
-    
+    - name: Print git diff
+      id: print_diff
+      run: |
+        echo 'diff<<EOF' >> $GITHUB_OUTPUT
+        cat diff.txt >> $GITHUB_OUTPUT
+        echo 'EOF' >> $GITHUB_OUTPUT
+      shell: bash
     - name: Run OpenAI code review
       id: openai
       run: |
