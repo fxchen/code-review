@@ -78,6 +78,28 @@ def format_file_contents_as_markdown(filenames: List[str]) -> str:
       print(f"Could not read file {filename}: {e}")
   return formatted_files
 
+def call_openai_api(kwargs: dict) -> str:
+  """
+  Call the OpenAI API using the given kwargs.
+
+  Args:
+    kwargs: dict, parameters for the API call
+
+  Returns:
+    str: The response text from the API call
+  """
+  try:
+    response = openai.ChatCompletion.create(**kwargs)
+    if response.choices:
+      if 'text' in response.choices[0]:
+        return response.choices[0].text.strip()
+      else:
+        return response.choices[0].message.content.strip()
+    else:
+      return OPENAI_ERROR_NO_RESPONSE + response.text
+  except Exception as e:
+    return OPENAI_ERROR_FAILED + str(e)
+
 REQUEST = "Reply on how to improve the code (below). Think step-by-step. Give code examples of specific changes\n"
 
 STYLES = {
@@ -91,6 +113,7 @@ PERSONAS = {
   "marc_benioff": "You are Marc Benioff, internet entrepreneur and experienced software developer",
   "yoda": "You are Yoda, legendary Jedi Master. Speak like Yoda",
 }
+
 
 openai.api_key = os.environ[OPENAI_API_KEY]
 model = os.environ.get("MODEL", DEFAULT_MODEL)
@@ -115,18 +138,6 @@ if include_files:
   new_message = {"role": "user", "content": formatted_files}
   kwargs['messages'].append(new_message)
 
-try:
-  response = openai.ChatCompletion.create(**kwargs)
-  if response.choices:
-    if 'text' in response.choices[0]:
-      review_text = response.choices[0].text.strip()
-    else:
-      review_text = response.choices[0].message.content.strip()
-  else:
-    review_text = OPENAI_ERROR_NO_RESPONSE + response.text
-    sys.exit(1)
-except Exception as e:
-  review_text = OPENAI_ERROR_FAILED + str(e)
-  sys.exit(1)
+review_text = call_openai_api(kwargs)
 
 print(f"{review_text}")
