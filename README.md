@@ -2,6 +2,37 @@
 
 This action, authored by Frank Chen (@fxchen), improves your pull requests and code base by performing AI-assisted code reviews. It can analyze your pull requests and provide intelligent and insightful comments to help you maintain high code quality.
 
+<details>
+  <summary>Diagram for AI code review</summary>
+  
+```mermaid
+sequenceDiagram
+    participant GithubAction as Github Action
+    participant action_code_review as action_code_review.py
+    participant OpenAI_API as OpenAI API
+    participant Claude_API as Claude API
+    GithubAction->>action_code_review: main()
+    Note over action_code_review: Get environment variables
+    Note over action_code_review: Validate API, persona, and style
+    Note over action_code_review: Read git diff from stdin
+    action_code_review->>action_code_review: get_prompt()
+    Note over action_code_review: Generate prompt for API
+    action_code_review->>action_code_review: prepare_kwargs_func()
+    Note over action_code_review: Prepare parameters for API call
+    alt API to use is OpenAI
+        action_code_review->>OpenAI_API: call_openai_api(kwargs)
+        OpenAI_API-->>action_code_review: Review text
+    else API to use is Claude
+        action_code_review->>Claude_API: call_claude_api(kwargs)
+        Claude_API-->>action_code_review: Review text
+    end
+    action_code_review-->>GithubAction: Review text
+    Note over GithubAction: Sends the review text to the PR
+
+```
+
+</details>
+
 # Setup
 
 ## 1. Add a workflow like this in your repo.
@@ -85,7 +116,41 @@ jobs:
 
 ## Set up as CLI tool
 
-Coming soon
+
+<details>
+  <summary>Diagram for AI code review on CLI</summary>
+  
+```mermaid
+sequenceDiagram
+    participant code_review as code_review.py
+    participant action_code_review as action_code_review.py
+    participant OpenAI_API as OpenAI API
+    participant Claude_API as Claude API
+    code_review->>code_review: main()
+    Note over code_review: Parse arguments
+    code_review->>code_review: get_diff()
+    Note over code_review: Get git diff or file content
+    code_review->>action_code_review: subprocess.run(["python3", "action_code_review.py"])
+    Note over action_code_review: Get environment variables
+    Note over action_code_review: Validate API, persona, and style
+    Note over action_code_review: Read git diff from stdin
+    action_code_review->>action_code_review: get_prompt()
+    Note over action_code_review: Generate prompt for API
+    action_code_review->>action_code_review: prepare_kwargs_func()
+    Note over action_code_review: Prepare parameters for API call
+    alt API to use is OpenAI
+        action_code_review->>OpenAI_API: call_openai_api(kwargs)
+        OpenAI_API-->>action_code_review: Review text
+    else API to use is Claude
+        action_code_review->>Claude_API: call_claude_api(kwargs)
+        Claude_API-->>action_code_review: Review text
+    end
+    action_code_review-->>code_review: Review text
+    Note over code_review: Prints the review text
+```
+
+</details>
+
 
 # FAQ / Troubleshooting
 
