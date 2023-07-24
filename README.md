@@ -116,6 +116,11 @@ jobs:
 
 ## Set up as CLI tool
 
+Set up a bash or zsh alias like `code_review` that maps to `code_review.py`. Mine is below
+
+```
+code_review='~/source/code-review/code_review.py'
+```
 
 <details>
   <summary>Diagram for AI code review on CLI</summary>
