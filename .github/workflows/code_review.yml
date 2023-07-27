@@ -16,5 +16,6 @@ jobs:
       - uses: ./
         with:
           openai-key: ${{ secrets.OPENAI_API_KEY }}
+          model: 'gpt-4-32k'
           include-full-files: 'true'
           exclude-files: 'package.json,go.sum'
