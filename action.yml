@@ -10,12 +10,12 @@ inputs:
     description: 'The API to use for code review (openai, claude)'
     required: false
     default: 'openai'
-  anthropic-key:
-    description: 'The Anthropic (Claude) API key'
-    required: false
   openai-key:
     description: 'The OpenAI API key'
     required: true
+  anthropic-key:
+    description: 'The Anthropic (Claude) API key'
+    required: false
   model: 
     description: 'The OpenAI or Anthropic language model to use for code review'
     required: false
@@ -29,7 +29,7 @@ inputs:
     required: false
     default: 'concise'
   include-full-files:
-    description: 'Whether to include full files in addition to the diff'
+    description: 'Whether to include full files in addition to the diff (true or false)'
     required: false
     default: 'false'
   post-if-error:
@@ -105,11 +105,13 @@ runs:
         echo 'EOF' >> $GITHUB_OUTPUT
       shell: bash
       env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        API_TO_USE: ${{ inputs.api-to-use }}
         OPENAI_API_KEY: ${{ inputs.openai-key }}
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic-key }}
         MODEL: ${{ inputs.model }}
         PERSONA: ${{ inputs.persona }}
         STYLE: ${{ inputs.style }}
-        GITHUB_TOKEN: ${{ inputs.github-token }}
         INCLUDE_FILES: ${{ inputs.include-full-files }}
         COMMIT_TITLE: ${{ github.event.pull_request.title }}
         COMMIT_BODY: ${{ github.event.pull_request.body }}
