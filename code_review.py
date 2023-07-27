@@ -43,7 +43,7 @@ def get_diff_from_git(branch: str, exclude_files: List[str]) -> str:
   diff_command = construct_git_diff_command(branch, exclude_files)
   return execute_command(diff_command)
 
-def get_diff(diff_file: Optional[str] = None, branch: str = 'main', exclude_files: Optional[List[str]] = None) -> str:
+def get_diff(diff_file: str = None, branch: str = 'main', exclude_files: List[str] = None) -> str:
   """Get the diff either from git or a file."""
   if diff_file:
     return get_diff_from_file(diff_file)
