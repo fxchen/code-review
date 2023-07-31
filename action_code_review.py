@@ -10,7 +10,7 @@ from typing import List
 FILENAME_VALID_CHARS = "-_.() %s%s" % (string.ascii_letters, string.digits)
 GIT_DIFF_FILENAME_REGEX_PATTERN = r'\+\+\+ b/(.*)'
 DEFAULT_OPENAI_MODEL = "gpt-3.5-turbo-16k"
-DEFAULT_CLAUDE_MODEL = "claude-instant-1"
+DEFAULT_ANTHROPIC_MODEL = "claude-instant-100k"
 DEFAULT_STYLE = "concise"
 DEFAULT_PERSONA = "kent_beck"
 LLM_TEMPERATURE = 0.1
@@ -20,7 +20,7 @@ OPENAI_ERROR_FAILED = "OpenAI failed to generate a review. Error:\n"
 
 API_KEYS = {
     "openai": "OPENAI_API_KEY",
-    "claude": "ANTHROPIC_API_KEY",
+    "anthropic": "ANTHROPIC_API_KEY",
 }
 
 REQUEST = "Reply on how to improve the code (below). Think step-by-step. Give code examples of specific changes\n"
@@ -63,9 +63,9 @@ def call_openai_api(kwargs: dict) -> str:
   except Exception as e:
     raise Exception(f"OpenAI API call failed with parameters {kwargs}. Error: {e}")
 
-def call_claude_api(kwargs: dict) -> str:
+def call_anthropic_api(kwargs: dict) -> str:
     """
-    Call the Claude API using the given kwargs.
+    Call the Anthropic API using the given kwargs.
 
     Args:
       kwargs: dict, parameters for the API call
@@ -81,7 +81,7 @@ def call_claude_api(kwargs: dict) -> str:
         response = anthropic.completions.create(**kwargs)
         return response.completion.strip()
     except Exception as e:
-        raise Exception(f"Claude API call failed with parameters {kwargs}. Error: {e}")
+        raise Exception(f"Anthropic API call failed with parameters {kwargs}. Error: {e}")
 
 def prepare_openai_kwargs(model: str, prompt: str, max_tokens: int, temperature: float) -> dict:
     """
@@ -104,7 +104,7 @@ def prepare_openai_kwargs(model: str, prompt: str, max_tokens: int, temperature:
     }
     return kwargs
 
-def prepare_claude_kwargs(model: str, prompt: str, max_tokens: int, temperature: float) -> dict:
+def prepare_anthropic_kwargs(model: str, prompt: str, max_tokens: int, temperature: float) -> dict:
     """
     Prepares the keyword arguments for the Claude API call.
 
@@ -216,7 +216,7 @@ def main():
     
     API_FUNCTIONS = {
         "openai": (prepare_openai_kwargs, call_openai_api, DEFAULT_OPENAI_MODEL),
-        "claude": (prepare_claude_kwargs, call_claude_api, DEFAULT_CLAUDE_MODEL),
+        "anthropic": (prepare_anthropic_kwargs, call_anthropic_api, DEFAULT_ANTHROPIC_MODEL),
     }
 
     # Check if the specified API is supported
@@ -230,7 +230,7 @@ def main():
         print(f"The {api_key_env_var} environment variable is not set.")
         sys.exit(1)
     
-    # Set API key for openai (Claude does so by default)
+    # Set API key for openai (Anthropic does so by environment variable)
     if api_to_use == "openai":
         openai.api_key = os.environ[api_key_env_var]
     
