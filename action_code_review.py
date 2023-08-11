@@ -10,7 +10,7 @@ from typing import List
 FILENAME_VALID_CHARS = "-_.() %s%s" % (string.ascii_letters, string.digits)
 GIT_DIFF_FILENAME_REGEX_PATTERN = r'\+\+\+ b/(.*)'
 DEFAULT_OPENAI_MODEL = "gpt-3.5-turbo-16k"
-DEFAULT_ANTHROPIC_MODEL = "claude-instant-100k"
+DEFAULT_ANTHROPIC_MODEL = "claude-instant-1.2"
 DEFAULT_STYLE = "concise"
 DEFAULT_PERSONA = "kent_beck"
 LLM_TEMPERATURE = 0.1
@@ -81,6 +81,7 @@ def call_anthropic_api(kwargs: dict) -> str:
         response = anthropic.completions.create(**kwargs)
         return response.completion.strip()
     except Exception as e:
+        print(f"Anthropic API call failed with parameters {kwargs}. Error: {e}")
         raise Exception(f"Anthropic API call failed with parameters {kwargs}. Error: {e}")
 
 def prepare_openai_kwargs(model: str, prompt: str, max_tokens: int, temperature: float) -> dict:
@@ -246,7 +247,6 @@ def main():
     
     # Prepare kwargs for the API call
     kwargs = prepare_kwargs_func(model, prompt, LLM_MAX_TOKENS, LLM_TEMPERATURE)
-    
     
     # Call the API and print the review text
     review_text = call_api_func(kwargs)

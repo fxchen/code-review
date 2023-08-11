@@ -3,6 +3,7 @@
 import argparse
 import os
 import subprocess
+from typing import List
 
 DEFAULT_PERSONA = 'kent_beck'
 DEFAULT_STYLE = 'concise'
@@ -62,7 +63,6 @@ def main():
   parser.add_argument('--include-files', default='false', type=str, help='Whether to include full files in addition to the diff')
   parser.add_argument('--exclude-files', default='', type=str, help='A list of files to exclude from the action (comma separated). E.g. "package.json,pyproject.toml"')
   parser.add_argument('--api-to-use', default='openai', help='The API to use for code review (openai, anthropic)')
-  parser.add_argument('--anthropic-key', default=None, help='The Anthropic (Claude) API key')
   args = parser.parse_args()
 
   # Parse exclude_files argument as a list
@@ -87,7 +87,6 @@ def main():
   os.environ["STYLE"] = args.style
   os.environ["INCLUDE_FILES"] = args.include_files
   os.environ["API_TO_USE"] = args.api_to_use
-  os.environ["ANTHROPIC_API_KEY"] = args.anthropic_key
 
   # Call action_code_review.py with the diff as input from the correct directory
   script_dir = os.path.dirname(os.path.realpath(__file__))
