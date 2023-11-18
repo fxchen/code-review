@@ -1,3 +1,3 @@
-argparse
-openai
-anthropic
+argparse<=1.4.0
+openai<=1.3.3
+anthropic<=0.7.2
