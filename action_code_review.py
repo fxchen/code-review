@@ -123,16 +123,9 @@ def validate_filename(filename: str) -> bool:
     Returns:
       bool: True if the filename is valid, False otherwise
     """
-    # Check for directory traversal
-    if ".." in filename or "/" in filename:
-        return False
-
-    # Check for unusual characters
-    for char in filename:
-        if char not in FILENAME_VALID_CHARS:
-            return False
-
-    return True
+    return not any(
+           char in filename for char in set(filename) - set(FILENAME_VALID_CHARS)
+       ) and ".." not in filename and "/" not in filename
 
 
 def extract_filenames_from_diff_text(diff_text: str) -> List[str]:
