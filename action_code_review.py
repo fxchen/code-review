@@ -24,7 +24,7 @@ API_KEYS = {
     "anthropic": "ANTHROPIC_API_KEY",
 }
 
-REQUEST = "Reply on how to improve the code (below). Think step-by-step. Give code examples of specific changes\n"
+REQUEST = "Reply on how to improve the code (below). Think step-by-step. Give code examples of specific changes. Limit suggestions to 3 high quality examples\n"
 
 STYLES = {
     "zen": "Format feedback in the style of a zen koan",
@@ -39,103 +39,78 @@ PERSONAS = {
 }
 
 
-def call_openai_api(kwargs: dict) -> str:
+class BaseLLM:
     """
-    Call the OpenAI API using the given kwargs.
-
-    Args:
-      kwargs: dict, parameters for the API call
-
-    Returns:
-      str: The response text from the API call
-
-    Raises:
-      Exception: If the API call fails
+    Base class for language learning models.
     """
-    try:
-        response = openai.chat.completions.create(**kwargs)
-        if response.choices:
-            if "text" in response.choices[0]:
-                return response.choices[0].text.strip()
+    def __init__(self, model: str):
+        self.model = model
+
+    def prepare_kwargs(self, prompt: str, max_tokens: int, temperature: float) -> dict:
+        """
+        Prepares the keyword arguments for an LLM API call.
+        To be implemented by subclasses.
+        """
+        raise NotImplementedError
+
+    def call_api(self, kwargs: dict) -> str:
+        """
+        Calls the LLM API using the provided kwargs.
+        To be implemented by subclasses.
+        """
+        raise NotImplementedError
+
+class OpenAI_LLM(BaseLLM):
+    """
+    OpenAI LLM implementation.
+    """
+    def prepare_kwargs(self, prompt: str, max_tokens: int, temperature: float) -> dict:
+        kwargs = {
+            "model": self.model,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "messages": [{"role": "system", "content": prompt}],
+        }
+        return kwargs
+
+    def call_api(self, kwargs: dict) -> str:
+        try:
+            response = openai.chat.completions.create(**kwargs)
+            if response.choices:
+                if "text" in response.choices[0]:
+                    return response.choices[0].text.strip()
+                else:
+                    return response.choices[0].message.content.strip()
             else:
-                return response.choices[0].message.content.strip()
-        else:
-            return OPENAI_ERROR_NO_RESPONSE + response.text
-    except Exception as e:
-        raise Exception(
-            f"OpenAI API call failed with parameters {kwargs}. Error: {e}"
-        )
+                return OPENAI_ERROR_NO_RESPONSE + response.text
+        except Exception as e:
+            print(f"OpenAI API call failed with parameters {kwargs}. Error: {e}")
+            raise Exception(f"OpenAI API call failed with parameters {kwargs}. Error: {e}")
 
-
-def call_anthropic_api(kwargs: dict) -> str:
+class Anthropic_LLM(BaseLLM):
     """
-    Call the Anthropic API using the given kwargs.
-
-    Args:
-      kwargs: dict, parameters for the API call
-
-    Returns:
-      str: The response text from the API call
-
-    Raises:
-      Exception: If the API call fails
+    Anthropic LLM implementation.
     """
-    try:
-        anthropic = Anthropic()
-        response = anthropic.completions.create(**kwargs)
-        return response.completion.strip()
-    except Exception as e:
-        print(f"Anthropic API call failed with parameters {kwargs}. Error: {e}")
-        raise Exception(
-            f"Anthropic API call failed with parameters {kwargs}. Error: {e}"
-        )
+    def __init__(self, model: str):
+        super().__init__(model)
+        self.anthropic = Anthropic()
 
+    def prepare_kwargs(self, prompt: str, max_tokens: int, temperature: float) -> dict:
+        kwargs = {
+            "model": self.model,
+            "max_tokens_to_sample": max_tokens,
+            "prompt": f"{HUMAN_PROMPT}\n{prompt}\n{AI_PROMPT}",
+        }
+        return kwargs
 
-def prepare_openai_kwargs(
-    model: str, prompt: str, max_tokens: int, temperature: float
-) -> dict:
-    """
-    Prepares the keyword arguments for the OpenAI API call.
-
-    Args:
-      model: str, the model to use for the API call
-      prompt: str, the prompt to use for the API call
-      max_tokens: int, the maximum number of tokens to use for the API call
-      temperature: float, the temperature to use for the API call
-
-    Returns:
-      dict: The keyword arguments for the API call
-    """
-    kwargs = {
-        "model": model,
-        "temperature": temperature,
-        "max_tokens": max_tokens,
-        "messages": [{"role": "system", "content": prompt}],
-    }
-    return kwargs
-
-
-def prepare_anthropic_kwargs(
-    model: str, prompt: str, max_tokens: int, temperature: float
-) -> dict:
-    """
-    Prepares the keyword arguments for the Claude API call.
-
-    Args:
-      prompt: str, the prompt to use for the API call
-      model: str, the model to use for the API call
-      max_tokens: int, the maximum number of tokens to use for the API call
-
-    Returns:
-      dict: The keyword arguments for the API call
-    """
-
-    kwargs = {
-        "model": model,
-        "max_tokens_to_sample": max_tokens,
-        "prompt": f"{HUMAN_PROMPT}\n{prompt}\n{AI_PROMPT}",
-    }
-    return kwargs
+    def call_api(self, kwargs: dict) -> str:
+        try:
+            
+            response = self.anthropic.completions.create(**kwargs)
+            return response.completion.strip()
+        except Exception as e:
+            print(f"Anthropic API call failed with parameters {kwargs}. Error: {e}")
+            raise Exception(f"Anthropic API call failed with parameters {kwargs}. Error: {e}")
 
 
 def validate_filename(filename: str) -> bool:
@@ -233,42 +208,16 @@ def get_prompt(
 
 def main():
     # Get environment variables
-    api_to_use = os.environ.get(
-        "API_TO_USE", "openai"
-    )  # default to OpenAI if not specified
+    api_to_use = os.environ.get("API_TO_USE", "openai")  # Default to OpenAI if not specified
     persona = PERSONAS.get(os.environ.get("PERSONA", DEFAULT_PERSONA))
     style = STYLES.get(os.environ.get("STYLE", DEFAULT_STYLE))
     include_files = os.environ.get("INCLUDE_FILES", "false") == "true"
-
-    API_FUNCTIONS = {
-        "openai": (
-            prepare_openai_kwargs,
-            call_openai_api,
-            DEFAULT_OPENAI_MODEL,
-        ),
-        "anthropic": (
-            prepare_anthropic_kwargs,
-            call_anthropic_api,
-            DEFAULT_ANTHROPIC_MODEL,
-        ),
-    }
-
-    # Check if the specified API is supported
-    if api_to_use not in API_FUNCTIONS:
-        print(api_to_use)
-        raise ValueError(
-            f"Invalid API: {api_to_use}. Expected one of {list(API_FUNCTIONS.keys())}."
-        )
+    api_key_env_var = API_KEYS.get(api_to_use)
 
     # Make sure the necessary environment variable is set
-    api_key_env_var = API_KEYS.get(api_to_use)
     if api_key_env_var is None or api_key_env_var not in os.environ:
         print(f"The {api_key_env_var} environment variable is not set.")
         sys.exit(1)
-
-    # Set API key for openai (Anthropic does so by environment variable)
-    if api_to_use == "openai":
-        openai.api_key = os.environ[api_key_env_var]
 
     # Read in the diff
     diff = sys.stdin.read()
@@ -276,17 +225,22 @@ def main():
     # Generate the prompt
     prompt = get_prompt(diff, persona, style, include_files)
 
-    # Get the functions to prepare kwargs and call API for the specified API
-    prepare_kwargs_func, call_api_func, model = API_FUNCTIONS[api_to_use]
+    # Instantiate the appropriate LLM class
+    if api_to_use == "openai":
+        llm = OpenAI_LLM(DEFAULT_OPENAI_MODEL)
+        openai.api_key = os.environ[api_key_env_var]  # Set the API key for OpenAI
+    elif api_to_use == "anthropic":
+        llm = Anthropic_LLM(DEFAULT_ANTHROPIC_MODEL)
+    else:
+        raise ValueError(f"Invalid API: {api_to_use}. Expected one of ['openai', 'anthropic'].")
 
     # Prepare kwargs for the API call
-    kwargs = prepare_kwargs_func(model, prompt, LLM_MAX_TOKENS, LLM_TEMPERATURE)
-
+    kwargs = llm.prepare_kwargs(prompt, LLM_MAX_TOKENS, LLM_TEMPERATURE)
+    
     # Call the API and print the review text
-    review_text = call_api_func(kwargs)
+    review_text = llm.call_api(kwargs)
 
     print(f"{review_text}")
-
 
 if __name__ == "__main__":
     main()
